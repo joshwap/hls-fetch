@@ -21,13 +21,14 @@ use strict;
 use Getopt::Long;
 use HTML::Parser;
 use LWP::UserAgent;
+#use LWP::Protocol::socks;
 use JSON;
 use File::Temp qw(tempfile);
 use URI::URL;
 use constant READ_SIZE => 1024;
 
 my %opt = ('bandwidth' => 'max');
-Getopt::Long::GetOptions(\%opt, 'embedded', 'svtplay', 'playlist', 'output|o=s', 'bandwidth|b=s', 'quiet|q', 'force|f', 'verbose|v', 'no-decrypt', 'version', 'help') || exit 1;
+Getopt::Long::GetOptions(\%opt, 'embedded', 'svtplay', 'playlist', 'output|o=s', 'bandwidth|b=s', 'quiet|q', 'proxy|p', 'force|f', 'verbose|v', 'no-decrypt', 'version', 'help') || exit 1;
 
 if ($opt{'version'}) {
   print "hls-fetch 0.1\n";
@@ -50,6 +51,7 @@ if ($opt{'help'}) {
   print "                        lowest (\"min\") or highest (\"max\") (default max)\n";
   print "  -v, --verbose         explain what is being done\n";
   print "  -q, --quiet           no output other than errors\n";
+  print "  -p, --proxy           use the pre-defined proxy\n";
   print "      --no-decrypt      skip decryption even if stream should be decrypted\n";
   print "      --help            display this help and exit\n";
   print "      --version         output version information and exit\n";
@@ -70,6 +72,12 @@ if (!exists $opt{'output'}) {
 
 my ($url) = @ARGV;
 my $browser = LWP::UserAgent->new;
+$browser->agent("Mozilla/5.0 (compatible; MyDownloader/1.0)");
+
+# Updated to support proxy
+if ($opt{'proxy'}) {
+  $browser->proxy(http => 'socks://thanos.rtech.net:1080');
+}
 $browser->cookie_jar({});
 
 my $video_file = $opt{'output'};
